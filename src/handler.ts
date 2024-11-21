@@ -5,6 +5,12 @@ import AWS from 'aws-sdk';
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const tableName = process.env.DYNAMODB_TABLE!;
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'OPTIONS,GET,POST,PUT,DELETE',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
 // Create Task
 export const createTask = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const data = JSON.parse(event.body || '{}');
@@ -12,6 +18,7 @@ export const createTask = async (event: APIGatewayProxyEvent): Promise<APIGatewa
   if (!data.title || typeof data.title !== 'string') {
     return {
       statusCode: 400,
+      headers: corsHeaders,
       body: JSON.stringify({ message: 'Invalid input: title is required and should be a string.' }),
     };
   }
@@ -31,12 +38,14 @@ export const createTask = async (event: APIGatewayProxyEvent): Promise<APIGatewa
     await dynamoDb.put(params).promise();
     return {
       statusCode: 201,
+      headers: corsHeaders,
       body: JSON.stringify(params.Item),
     };
   } catch (error) {
     console.error('Create Task Error:', error);
     return {
       statusCode: 500,
+      headers: corsHeaders,
       body: JSON.stringify({ message: 'Could not create task' }),
     };
   }
@@ -52,12 +61,14 @@ export const getTasks = async (): Promise<APIGatewayProxyResult> => {
     const result = await dynamoDb.scan(params).promise();
     return {
       statusCode: 200,
+      headers: corsHeaders,
       body: JSON.stringify(result.Items),
     };
   } catch (error) {
     console.error('Get Tasks Error:', error);
     return {
       statusCode: 500,
+      headers: corsHeaders,
       body: JSON.stringify({ message: 'Could not retrieve tasks' }),
     };
   }
@@ -70,6 +81,7 @@ export const getTaskById = async (event: APIGatewayProxyEvent): Promise<APIGatew
   if (!taskId) {
     return {
       statusCode: 400,
+      headers: corsHeaders,
       body: JSON.stringify({ message: 'taskId is required' }),
     };
   }
@@ -86,11 +98,13 @@ export const getTaskById = async (event: APIGatewayProxyEvent): Promise<APIGatew
     if (result.Item) {
       return {
         statusCode: 200,
+        headers: corsHeaders,
         body: JSON.stringify(result.Item),
       };
     } else {
       return {
         statusCode: 404,
+        headers: corsHeaders,
         body: JSON.stringify({ message: 'Task not found' }),
       };
     }
@@ -98,6 +112,7 @@ export const getTaskById = async (event: APIGatewayProxyEvent): Promise<APIGatew
     console.error('Get Task by ID Error:', error);
     return {
       statusCode: 500,
+      headers: corsHeaders,
       body: JSON.stringify({ message: 'Could not retrieve task' }),
     };
   }
@@ -111,6 +126,7 @@ export const updateTask = async (event: APIGatewayProxyEvent): Promise<APIGatewa
   if (!taskId || (!data.title && !data.description)) {
     return {
       statusCode: 400,
+      headers: corsHeaders,
       body: JSON.stringify({ message: 'taskId and at least one attribute (title or description) are required' }),
     };
   }
@@ -135,12 +151,14 @@ export const updateTask = async (event: APIGatewayProxyEvent): Promise<APIGatewa
     const result = await dynamoDb.update(params).promise();
     return {
       statusCode: 200,
+      headers: corsHeaders,
       body: JSON.stringify(result.Attributes),
     };
   } catch (error) {
     console.error('Update Task Error:', error);
     return {
       statusCode: 500,
+      headers: corsHeaders,
       body: JSON.stringify({ message: 'Could not update task' }),
     };
   }
@@ -153,6 +171,7 @@ export const deleteTask = async (event: APIGatewayProxyEvent): Promise<APIGatewa
   if (!taskId) {
     return {
       statusCode: 400,
+      headers: corsHeaders,
       body: JSON.stringify({ message: 'taskId is required' }),
     };
   }
@@ -168,12 +187,14 @@ export const deleteTask = async (event: APIGatewayProxyEvent): Promise<APIGatewa
     await dynamoDb.delete(params).promise();
     return {
       statusCode: 200,
+      headers: corsHeaders,
       body: JSON.stringify({ message: 'Task deleted successfully' }),
     };
   } catch (error) {
     console.error('Delete Task Error:', error);
     return {
       statusCode: 500,
+      headers: corsHeaders,
       body: JSON.stringify({ message: 'Could not delete task' }),
     };
   }
