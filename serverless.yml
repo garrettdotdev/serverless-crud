@@ -9,35 +9,35 @@ provider:
 
 functions:
   createTask:
-    handler: handler.createTask
+    handler: dist/handler.createTask
     events:
       - http:
           path: tasks
           method: post
           cors: true
   getTasks:
-    handler: handler.getTasks
+    handler: dist/handler.getTasks
     events:
       - http:
           path: tasks
           method: get
           cors: true
   getTaskById:
-    handler: handler.getTaskById
+    handler: dist/handler.getTaskById
     events:
       - http:
           path: tasks/{taskId}
           method: get
           cors: true
   updateTask:
-    handler: handler.updateTask
+    handler: dist/handler.updateTask
     events:
       - http:
           path: tasks/{taskId}
           method: put
           cors: true
   deleteTask:
-    handler: handler.deleteTask
+    handler: dist/handler.deleteTask
     events:
       - http:
           path: tasks/{taskId}

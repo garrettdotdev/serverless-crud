@@ -30,6 +30,13 @@
   },
   "homepage": "https://github.com/garrettdotdev/serverless-crud#readme",
   "dependencies": {
-    "aws-sdk": "^2.1692.0"
+    "aws-sdk": "^2.1692.0",
+    "uuid": "^11.0.3"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.145",
+    "@types/node": "^22.9.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
   }
 }
