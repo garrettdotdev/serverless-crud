@@ -4,6 +4,7 @@
   "description": "A serverless CRUD application demonstrating AWS architecture with Lambda, API Gateway, DynamoDB, and S3. Easily deployable in one step using Infrastructure as Code (IaC).",
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
     "test": "echo \"Error: no test speceified\" && exit 1"
   },
   "repository": {
@@ -36,6 +37,8 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.145",
     "@types/node": "^22.9.1",
+    "serverless-plugin-scripts": "^1.0.2",
+    "serverless-s3-deploy": "^0.10.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3"
   }
