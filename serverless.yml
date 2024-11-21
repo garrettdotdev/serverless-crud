@@ -4,48 +4,143 @@ provider:
   name: aws
   runtime: nodejs20.x
   region: us-east-1
+  stage: dev
   environment:
     DYNAMODB_TABLE: TasksTable
+    PATH: tasks
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "dynamodb:PutItem"
+            - "dynamodb:GetItem"
+            - "dynamodb:UpdateItem"
+            - "dynamodb:DeleteItem"
+            - "dynamodb:Scan"
+          Resource:
+            Fn::Join:
+              - ""
+              - - "arn:aws:dynamodb:"
+                - Ref: AWS::Region
+                - ":"
+                - Ref: AWS::AccountId
+                - ":table/"
+                - Ref: TasksTable
+
 
 functions:
   createTask:
     handler: dist/handler.createTask
     events:
       - http:
-          path: tasks
+          path: ${self:provider.environment.PATH}
           method: post
+          cors: true
+      - http:
+          path: ${self:provider.environment.PATH}
+          method: options
           cors: true
   getTasks:
     handler: dist/handler.getTasks
     events:
       - http:
-          path: tasks
+          path: ${self:provider.environment.PATH}
           method: get
+          cors: true
+      - http:
+          path: ${self:provider.environment.PATH}
+          method: options
           cors: true
   getTaskById:
     handler: dist/handler.getTaskById
     events:
       - http:
-          path: tasks/{taskId}
+          path: ${self:provider.environment.PATH}/{taskId}
           method: get
+          cors: true
+      - http:
+          path: tasks/{taskId}
+          method: options
           cors: true
   updateTask:
     handler: dist/handler.updateTask
     events:
       - http:
-          path: tasks/{taskId}
+          path: ${self:provider.environment.PATH}/{taskId}
           method: put
+          cors: true
+      - http:
+          path: ${self:provider.environment.PATH}/{taskId}
+          method: options
           cors: true
   deleteTask:
     handler: dist/handler.deleteTask
     events:
       - http:
-          path: tasks/{taskId}
+          path: ${self:provider.environment.PATH}/{taskId}
           method: delete
           cors: true
+      - http:
+          path: ${self:provider.environment.PATH}/{taskId}
+          method: options
+          cors: true
+
+outputs:
+  ApiGatewayUrl:
+    Value:
+      'Fn::Join':
+        - ''
+        - - 'https://'
+          - Ref: ApiGatewayRestApi
+          - '.execute-api.'
+          - Ref: AWS::Region
+          - '.amazonaws.com/'
+          - ${self:provider.stage}
+
+custom:
+  assets:
+    targets:
+      - bucket:
+          Ref: S3Bucket
+        files:
+          - source: frontend/
+            globs: '**/*'
+  scripts:
+    hooks:
+      after:deploy:deploy: "node updateFrontend.js"
+      after:deploy:finalize: "serverless s3deploy"
 
 resources:
   Resources:
+    S3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        WebsiteConfiguration:
+          IndexDocument: index.html
+          ErrorDocument: index.html
+        PublicAccessBlockConfiguration: # Explicitly allow public access
+          BlockPublicAcls: false
+          BlockPublicPolicy: false
+          IgnorePublicAcls: false
+          RestrictPublicBuckets: false
+    S3BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket:
+          Ref: S3Bucket
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal: "*"
+              Action: "s3:GetObject"
+              Resource:
+                Fn::Join:
+                  - ""
+                  - - "arn:aws:s3:::"
+                    - Ref: S3Bucket
+                    - "/*"
     TasksTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -57,3 +152,7 @@ resources:
           - AttributeName: taskId
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
+
+plugins:
+  - serverless-s3-deploy
+  - serverless-plugin-scripts
