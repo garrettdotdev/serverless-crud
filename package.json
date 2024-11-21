@@ -1,0 +1,35 @@
+{
+  "name": "serverless-crud",
+  "version": "1.0.0",
+  "description": "A serverless CRUD application demonstrating AWS architecture with Lambda, API Gateway, DynamoDB, and S3. Easily deployable in one step using Infrastructure as Code (IaC).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test speceified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/garrettdotdev/serverless-crud.git"
+  },
+  "keywords": [
+    "serverless",
+    "aws",
+    "crud",
+    "lambda",
+    "api-gateway",
+    "dynamodb",
+    "s3",
+    "nodejs",
+    "iac",
+    "aws-sam",
+    "example-project"
+  ],
+  "author": "Garrett Rohde",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/garrettdotdev/serverless-crud/issues"
+  },
+  "homepage": "https://github.com/garrettdotdev/serverless-crud#readme",
+  "dependencies": {
+    "aws-sdk": "^2.1692.0"
+  }
+}
