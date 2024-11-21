@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Serverless CRUD App</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<h1>Task Manager</h1>
+<div>
+  <h3>Create Task</h3>
+  <input type="text" id="taskTitle" placeholder="Task Title" />
+  <input type="text" id="taskDescription" placeholder="Task Description" />
+  <button onclick="createTask()">Create Task</button>
+</div>
+
+<div>
+  <h3>Tasks</h3>
+  <button onclick="getTasks()">Get All Tasks</button>
+  <div id="tasksList"></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
