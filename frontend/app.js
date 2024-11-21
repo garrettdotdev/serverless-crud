@@ -1,10 +1,11 @@
-const apiUrl = 'https://ulu5qou3ya.execute-api.us-east-1.amazonaws.com/dev';
+// apiUrl will be written automatically during deploy
+const apiUrl = '...';
 
 async function createTask() {
   const title = document.getElementById('taskTitle').value;
   const description = document.getElementById('taskDescription').value;
 
-  const response = await fetch(apiUrl, {
+  const response = await fetch(apiUrl + '/tasks', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -23,7 +24,7 @@ async function createTask() {
 }
 
 async function getTasks() {
-  const response = await fetch(apiUrl, {
+  const response = await fetch(apiUrl + '/tasks', {
     method: 'GET',
   });
 
@@ -46,7 +47,7 @@ async function getTasks() {
 }
 
 async function deleteTask(taskId) {
-  const response = await fetch(`${apiUrl}/${taskId}`, {
+  const response = await fetch(apiUrl + '/tasks/' + taskId, {
     method: 'DELETE',
   });
 
