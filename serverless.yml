@@ -1,0 +1,59 @@
+service: serverless-crud
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  environment:
+    DYNAMODB_TABLE: TasksTable
+
+functions:
+  createTask:
+    handler: handler.createTask
+    events:
+      - http:
+          path: tasks
+          method: post
+          cors: true
+  getTasks:
+    handler: handler.getTasks
+    events:
+      - http:
+          path: tasks
+          method: get
+          cors: true
+  getTaskById:
+    handler: handler.getTaskById
+    events:
+      - http:
+          path: tasks/{taskId}
+          method: get
+          cors: true
+  updateTask:
+    handler: handler.updateTask
+    events:
+      - http:
+          path: tasks/{taskId}
+          method: put
+          cors: true
+  deleteTask:
+    handler: handler.deleteTask
+    events:
+      - http:
+          path: tasks/{taskId}
+          method: delete
+          cors: true
+
+resources:
+  Resources:
+    TasksTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: taskId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: taskId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
