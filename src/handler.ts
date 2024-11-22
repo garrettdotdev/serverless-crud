@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
 import AWS from 'aws-sdk';
+import Joi from 'joi';
 
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const tableName = process.env.DYNAMODB_TABLE!;
@@ -11,30 +12,42 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+// Validation schemas
+const createTaskSchema = Joi.object({
+  title: Joi.string().required(),
+  description: Joi.string().optional(),
+});
+
+const updateTaskSchema = Joi.object({
+  title: Joi.string().optional(),
+  description: Joi.string().optional(),
+}).or('title', 'description');
+
 // Create Task
 export const createTask = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const data = JSON.parse(event.body || '{}');
-
-  if (!data.title || typeof data.title !== 'string') {
-    return {
-      statusCode: 400,
-      headers: corsHeaders,
-      body: JSON.stringify({ message: 'Invalid input: title is required and should be a string.' }),
-    };
-  }
-
-  const params = {
-    TableName: tableName,
-    Item: {
-      taskId: uuidv4(),
-      title: data.title,
-      description: data.description || '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-  };
-
   try {
+    const data = JSON.parse(event.body ?? '{}');
+    const { error } = createTaskSchema.validate(data);
+
+    if (error) {
+      return {
+        statusCode: 400,
+        headers: corsHeaders,
+        body: JSON.stringify({ message: `Validation error: ${error.message}` }),
+      };
+    }
+
+    const params = {
+      TableName: tableName,
+      Item: {
+        taskId: uuidv4(),
+        title: data.title,
+        description: data.description || '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    };
+
     await dynamoDb.put(params).promise();
     return {
       statusCode: 201,
@@ -88,9 +101,7 @@ export const getTaskById = async (event: APIGatewayProxyEvent): Promise<APIGatew
 
   const params = {
     TableName: tableName,
-    Key: {
-      taskId,
-    },
+    Key: { taskId },
   };
 
   try {
@@ -120,34 +131,43 @@ export const getTaskById = async (event: APIGatewayProxyEvent): Promise<APIGatew
 
 // Update Task
 export const updateTask = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const data = JSON.parse(event.body || '{}');
-  const { taskId } = event.pathParameters || {};
-
-  if (!taskId || (!data.title && !data.description)) {
-    return {
-      statusCode: 400,
-      headers: corsHeaders,
-      body: JSON.stringify({ message: 'taskId and at least one attribute (title or description) are required' }),
-    };
-  }
-
-  const params = {
-    TableName: tableName,
-    Key: { taskId },
-    UpdateExpression: 'set #title = :title, #description = :description, updatedAt = :updatedAt',
-    ExpressionAttributeNames: {
-      '#title': 'title',
-      '#description': 'description',
-    },
-    ExpressionAttributeValues: {
-      ':title': data.title || '',
-      ':description': data.description || '',
-      ':updatedAt': new Date().toISOString(),
-    },
-    ReturnValues: 'ALL_NEW',
-  };
-
   try {
+    const data = JSON.parse(event.body ?? '{}');
+    const { taskId } = event.pathParameters || {};
+
+    if (!taskId) {
+      return {
+        statusCode: 400,
+        headers: corsHeaders,
+        body: JSON.stringify({ message: 'taskId is required' }),
+      };
+    }
+
+    const { error } = updateTaskSchema.validate(data);
+    if (error) {
+      return {
+        statusCode: 400,
+        headers: corsHeaders,
+        body: JSON.stringify({ message: `Validation error: ${error.message}` }),
+      };
+    }
+
+    const params = {
+      TableName: tableName,
+      Key: { taskId },
+      UpdateExpression: 'set #title = :title, #description = :description, updatedAt = :updatedAt',
+      ExpressionAttributeNames: {
+        '#title': 'title',
+        '#description': 'description',
+      },
+      ExpressionAttributeValues: {
+        ':title': data.title || '',
+        ':description': data.description || '',
+        ':updatedAt': new Date().toISOString(),
+      },
+      ReturnValues: 'ALL_NEW',
+    };
+
     const result = await dynamoDb.update(params).promise();
     return {
       statusCode: 200,
@@ -178,9 +198,7 @@ export const deleteTask = async (event: APIGatewayProxyEvent): Promise<APIGatewa
 
   const params = {
     TableName: tableName,
-    Key: {
-      taskId,
-    },
+    Key: { taskId },
   };
 
   try {
